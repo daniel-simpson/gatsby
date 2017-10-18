@@ -97,6 +97,14 @@ exports.buildForeignReferenceMap = ({
           // add to the reference map, otherwise ignore.
           if (Array.isArray(entryItemFieldValue)) {
             if (
+              process.env.gatsby_log_level === `verbose` &&
+              !entryItemFieldValue.length
+            ) {
+              console.log(`Warning: no content found for type ${contentTypeItem.name} and field: ${entryItemFieldKey}.`)
+            }
+            
+            else if (
+              entryItemFieldValue.length &&
               entryItemFieldValue[0] &&
               entryItemFieldValue[0].sys &&
               entryItemFieldValue[0].sys.type &&
