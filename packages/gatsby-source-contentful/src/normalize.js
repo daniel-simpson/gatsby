@@ -198,23 +198,29 @@ exports.createContentTypeNodes = ({
       const entryItemFields = _.mapValues(entryItem.fields, v => getField(v))
 
       // If entry is not set by user, provide an empty value of the same type
+      const setBlankValue = contentTypeItemField => {
+        if (contentTypeItemField.type.match(/Symbol|Text|Date/)) {
+          return ``
+        } else if (contentTypeItemField.type.match(/Number/)) {
+          return NaN
+        } else if (
+          contentTypeItemField.type.match(
+            /Object|Location|Media|Reference|Link/
+          )
+        ) {
+          return {}
+        } else if (contentTypeItemField.type.match(/Array/)) {
+          // Setting values recursively is useful for 'never defined entries'
+          // TODO: Does not work for arrays of references, assets, objects, ...
+          return [setBlankValue(contentTypeItemField.items)]
+        } else if (contentTypeItemField.type.match(/Boolean/)) {
+          return false
+        }
+      }
       contentTypeItem.fields.forEach(contentTypeItemField => {
         const fieldName = contentTypeItemField.id
-        if (typeof entryItemFields[fieldName] === "undefined") {
-          if (contentTypeItemField.type.match(/Symbol|Text|Date/)) {
-            entryItemFields[fieldName] = ""
-          } else if (contentTypeItemField.type.match(/Number/)) {
-            // NOTE: Might be a problem for some people to auto set to 0?
-            entryItemFields[fieldName] = 0
-          } else if (
-            contentTypeItemField.type.match(/Object|Location|Media|Reference/)
-          ) {
-            entryItemFields[fieldName] = {}
-          } else if (contentTypeItemField.type.match(/Array/)) {
-            entryItemFields[fieldName] = []
-          } else if (contentTypeItemField.type.match(/Boolean/)) {
-            entryItemFields[fieldName] = false
-          }
+        if (typeof entryItemFields[fieldName] === `undefined`) {
+          entryItemFields[fieldName] = setBlankValue(contentTypeItemField)
         }
       })
 
