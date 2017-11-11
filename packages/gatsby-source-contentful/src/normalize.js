@@ -197,6 +197,32 @@ exports.createContentTypeNodes = ({
       // Get localized fields.
       const entryItemFields = _.mapValues(entryItem.fields, v => getField(v))
 
+      // If entry is not set by user, provide an empty value of the same type
+      contentTypeItem.fields.forEach(contentTypeItemField => {
+        const fieldName = contentTypeItemField.id
+        if (typeof entryItemFields[fieldName] === "undefined") {
+          if (contentTypeItemField.type.match(/Symbol|Date/)) {
+            entryItemFields[fieldName] = ""
+          } else if (contentTypeItemField.type.match(/Text/)) {
+            // NOTE: Can not set empty string on text field because of validationError
+            // The new node didn't pass validation
+            // ValidationError: child "internal" fails because [child "content" fails because ["content" is not allowed to be empty]]
+            entryItemFields[fieldName] = " "
+          } else if (contentTypeItemField.type.match(/Number/)) {
+            // NOTE: Might be a problem for some people to auto set to 0??
+            entryItemFields[fieldName] = 0
+          } else if (
+            contentTypeItemField.type.match(/Object|Location|Media|Reference/)
+          ) {
+            entryItemFields[fieldName] = {}
+          } else if (contentTypeItemField.type.match(/Array/)) {
+            entryItemFields[fieldName] = []
+          } else if (contentTypeItemField.type.match(/Boolean/)) {
+            entryItemFields[fieldName] = false
+          }
+        }
+      })
+
       // Prefix any conflicting fields
       // https://github.com/gatsbyjs/gatsby/pull/1084#pullrequestreview-41662888
       conflictFields.forEach(conflictField => {
@@ -211,6 +237,7 @@ exports.createContentTypeNodes = ({
           const entryItemFieldValue = entryItemFields[entryItemFieldKey]
           if (Array.isArray(entryItemFieldValue)) {
             if (
+              entryItemFieldValue[0] &&
               entryItemFieldValue[0].sys &&
               entryItemFieldValue[0].sys.type &&
               entryItemFieldValue[0].sys.id
