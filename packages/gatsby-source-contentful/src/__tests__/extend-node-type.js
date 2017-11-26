@@ -3,7 +3,13 @@ const {
   resolveResponsiveResolution,
   resolveResponsiveSizes,
   resolveResize,
+  extendNodeType,
 } = require(`../extend-node-type`)
+
+
+const {
+  contentTypeItems
+} = require(`./data.json`)
 
 describe(`contentful extend node type`, () => {
   describe(`createUrl`, () => {
@@ -101,6 +107,15 @@ describe(`contentful extend node type`, () => {
         quality: 50,
       })
       expect(resp).toMatchSnapshot()
+    })
+  })
+
+  describe(`Contentful extendNodeType non required fields`, () => {
+    contentTypeItems.forEach(ct => {
+      it(`for content type ${ct.name}`, () => {
+        const resp = extendNodeType({ type: ct })
+        expect(resp).toMatchSnapshot()
+      })
     })
   })
 })

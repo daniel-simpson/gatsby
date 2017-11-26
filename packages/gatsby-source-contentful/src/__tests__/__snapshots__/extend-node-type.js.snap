@@ -1,5 +1,11 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`contentful extend node type Contentful extendNodeType non required fields for content type Brand 1`] = `Object {}`;
+
+exports[`contentful extend node type Contentful extendNodeType non required fields for content type Category 1`] = `Object {}`;
+
+exports[`contentful extend node type Contentful extendNodeType non required fields for content type Product 1`] = `Object {}`;
+
 exports[`contentful extend node type createUrl allows you to create URls 1`] = `"//images.contentful.com/dsf/bl.jpg?w=100"`;
 
 exports[`contentful extend node type createUrl ignores options it doesn't understand 1`] = `"//images.contentful.com/dsf/bl.jpg?"`;
