@@ -1,10 +1,62 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`contentful extend node type Contentful extendNodeType non required fields for content type Brand 1`] = `Object {}`;
+exports[`contentful extend node type Contentful extendNodeType non required fields for content type Brand 1`] = `
+Object {
+  "companyDescription": Object {
+    "type": "String",
+  },
+  "email": Object {
+    "type": "String",
+  },
+  "logo": "Logo",
+  "phone": Array [],
+  "twitter": Object {
+    "type": "String",
+  },
+  "website": Object {
+    "type": "String",
+  },
+}
+`;
 
-exports[`contentful extend node type Contentful extendNodeType non required fields for content type Category 1`] = `Object {}`;
+exports[`contentful extend node type Contentful extendNodeType non required fields for content type Category 1`] = `
+Object {
+  "categoryDescription": Object {
+    "type": "String",
+  },
+  "icon": "Icon",
+}
+`;
 
-exports[`contentful extend node type Contentful extendNodeType non required fields for content type Product 1`] = `Object {}`;
+exports[`contentful extend node type Contentful extendNodeType non required fields for content type Product 1`] = `
+Object {
+  "brand": "Brand",
+  "categories": Array [],
+  "image": Array [],
+  "price": Object {
+    "type": "Float",
+  },
+  "productDescription": Object {
+    "type": "String",
+  },
+  "quantity": Object {
+    "type": "Int",
+  },
+  "sizetypecolor": Object {
+    "type": "String",
+  },
+  "sku": Object {
+    "type": "String",
+  },
+  "slug": Object {
+    "type": "String",
+  },
+  "tags": Array [],
+  "website": Object {
+    "type": "String",
+  },
+}
+`;
 
 exports[`contentful extend node type createUrl allows you to create URls 1`] = `"//images.contentful.com/dsf/bl.jpg?w=100"`;
 

@@ -328,10 +328,77 @@ const resolveResize = (image, options) =>
 exports.resolveResize = resolveResize
 
 exports.extendNodeType = ({ type }) => {
-  if (type.name !== `ContentfulAsset`) {
-    return {}
-  }
+  switch(type.name) {
+    case `ContentfulAsset`:
+      return extendContentfulAssetType()
 
+    default:
+      return extendContentfulEntryType(type)
+  }
+}
+
+function extendContentfulEntryType(type) {
+  const nullableFields = type.fields.filter(f => !f.required)
+
+  const output = nullableFields.map(f => {
+    const fieldExtensionDefinition = getGraphQLDefinitionForFieldType(f)
+
+    return fieldExtensionDefinition ? {
+      id: f.id,
+      extension: fieldExtensionDefinition,
+    } : null
+  })
+  .filter(f => !!f)
+  .reduce((out, next, index) => Object.assign(out, {
+      [`${next.id}`]: next.extension,
+  }), {})
+
+  return output
+}
+
+function getGraphQLDefinitionForFieldType(field) {
+  switch(field.type) {
+    case `Symbol`:
+    case `Text`:
+      return {
+        type: GraphQLString,
+      }
+
+    case `Boolean`:
+      return {
+        type: GraphQLBoolean,
+      }
+
+    case `Integer`:
+      return {
+        type: GraphQLInt,
+      }
+      
+    case `Number`:
+    return {
+      type: GraphQLFloat,
+    }
+
+    case `Date`:
+      return {
+        type: GraphQLString,
+      }
+
+    case `Link`:
+    case `Object`:
+    case `Location`:
+      return new GraphQLObjectType({
+        name: field.name,
+        //?
+      })
+
+    case `Array`:
+      return []
+  }
+  return null
+}
+
+function extendContentfulAssetType() {
   return {
     resolutions: {
       type: new GraphQLObjectType({
