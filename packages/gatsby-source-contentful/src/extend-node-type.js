@@ -1,3 +1,5 @@
+const stateHelpers = require(`./stateHelpers`)
+
 const Promise = require(`bluebird`)
 const {
   GraphQLObjectType,
@@ -10,6 +12,8 @@ const {
 const qs = require(`qs`)
 const base64Img = require(`base64-img`)
 const _ = require(`lodash`)
+
+const pascalCase = _.flow(_.camelCase, _.upperFirst)
 
 const ImageFormatType = new GraphQLEnumType({
   name: `ContentfulImageFormat`,
@@ -327,18 +331,32 @@ const resolveResize = (image, options) =>
 
 exports.resolveResize = resolveResize
 
-exports.extendNodeType = ({ type }) => {
+exports.extendNodeType = async ({ type, store }, { spaceId }) => {
   switch(type.name) {
     case `ContentfulAsset`:
       return extendContentfulAssetType()
 
     default:
-      return extendContentfulEntryType(type)
+      return await extendContentfulEntryType(store, spaceId, type)
   }
 }
 
-function extendContentfulEntryType(type) {
-  const nullableFields = type.fields.filter(f => !f.required)
+const extendContentfulEntryType = async (store, spaceId, type) => {
+  //TODO: FIX SHITTY CODE
+  const typesData = stateHelpers.getContentfulPluginStateForSpace(store, spaceId).contentTypeItems.filter(ct => 
+    type.name === `Contentful${ct.sys && ct.sys.id && pascalCase(ct.sys.id)}`
+  )
+
+  if(!typesData.length) {
+    return {}
+  }
+
+  const typeData = typesData[0]
+
+  console.log(`Retrieving state from store using spaceId ${spaceId}, typeName: ${type.name || type.id}`)
+  console.log(`Types data:`, JSON.stringify(typesData, null, 4))
+
+  const nullableFields = (typeData.fields).filter(f => !f.required)
 
   const output = nullableFields.map(f => {
     const fieldExtensionDefinition = getGraphQLDefinitionForFieldType(f)
@@ -349,38 +367,43 @@ function extendContentfulEntryType(type) {
     } : null
   })
   .filter(f => !!f)
-  .reduce((out, next, index) => Object.assign(out, {
-      [`${next.id}`]: next.extension,
+  .reduce((out, next) => Object.assign(out, {
+      [next.id]: next.extension,
   }), {})
 
-  return output
+  return { ...output }
 }
 
-function getGraphQLDefinitionForFieldType(field) {
+const getGraphQLDefinitionForFieldType = async field => {
   switch(field.type) {
     case `Symbol`:
     case `Text`:
       return {
+        name: field.id,
         type: GraphQLString,
       }
 
     case `Boolean`:
       return {
+        name: field.id,
         type: GraphQLBoolean,
       }
 
     case `Integer`:
       return {
+        name: field.id,
         type: GraphQLInt,
       }
       
     case `Number`:
     return {
+      name: field.id,
       type: GraphQLFloat,
     }
 
     case `Date`:
       return {
+        name: field.id,
         type: GraphQLString,
       }
 
@@ -388,8 +411,8 @@ function getGraphQLDefinitionForFieldType(field) {
     case `Object`:
     case `Location`:
       return new GraphQLObjectType({
-        name: field.name,
-        //?
+        name: field.id,
+        fields: {},
       })
 
     case `Array`:
@@ -398,7 +421,7 @@ function getGraphQLDefinitionForFieldType(field) {
   return null
 }
 
-function extendContentfulAssetType() {
+const extendContentfulAssetType = () => {
   return {
     resolutions: {
       type: new GraphQLObjectType({

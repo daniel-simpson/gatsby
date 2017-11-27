@@ -325,6 +325,8 @@ exports.createContentTypeNodes = ({
       internal: {
         type: `${makeTypeName(`ContentType`)}`,
       },
+      //Need to pass this field data through somehow to extendNodeTypes
+      fields: contentTypeItem.fields,
     }
 
     // Get content digest of node.

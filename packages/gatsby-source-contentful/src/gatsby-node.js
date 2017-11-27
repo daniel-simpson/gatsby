@@ -4,6 +4,8 @@ const fs = require(`fs-extra`)
 const normalize = require(`./normalize`)
 const fetchData = require(`./fetch`)
 
+const stateHelpers = require(`./stateHelpers`)
+
 const conflictFieldPrefix = `contentful`
 
 // restrictedNodeFields from here https://www.gatsbyjs.org/docs/node-interface/
@@ -36,15 +38,9 @@ exports.sourceNodes = async (
   host = host || `cdn.contentful.com`
   // Get sync token if it exists.
   let syncToken
-  if (
-    store.getState().status.plugins &&
-    store.getState().status.plugins[`gatsby-source-contentful`] &&
-    store.getState().status.plugins[`gatsby-source-contentful`][spaceId]
-  ) {
-    syncToken = store.getState().status.plugins[`gatsby-source-contentful`][
-      spaceId
-    ]
-  }
+
+  const currentPluginState = stateHelpers.getContentfulPluginStateForSpace(store, spaceId)
+  syncToken = currentPluginState.syncToken
 
   const {
     currentSyncData,
@@ -88,11 +84,10 @@ exports.sourceNodes = async (
   // Store our sync state for the next sync.
   // TODO: we do not store the token if we are using preview, since only initial sync is possible there
   // This might change though
-  if (host !== `preview.contentful.com`) {
-    const newState = {}
-    newState[spaceId] = nextSyncToken
-    setPluginStatus(newState)
-  }
+  stateHelpers.setContentfulPluginStateForSpace({ boundActionCreators, store }, spaceId, {
+    syncToken: host !== `preview.contentful.com` ? nextSyncToken : null,
+    contentTypeItems: contentTypeItems,
+  })
 
   // Create map of resolvable ids so we can check links against them while creating
   // links.
@@ -202,4 +197,14 @@ exports.onPreExtractQueries = async ({
     require.resolve(`gatsby-source-contentful/src/fragments.js`),
     `${program.directory}/.cache/fragments/contentful-asset-fragments.js`
   )
+}
+
+
+exports.onCreateNode = async ({ node }) => {
+  if(!node.internal.owner == `gatsby-source-contentful`)
+    return
+
+    //Could try adding null fields here using node.internal.type, but kinda gross.
+
+  console.log(`xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`, node)
 }
